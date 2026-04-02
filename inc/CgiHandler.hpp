@@ -31,6 +31,7 @@ class CgiHandler{
         void initEnv(HttpRequest& req , const std::vector<Location>::iterator it_loc);
 
         // // Setters
+        void CgiHandler::setCgiPath(std::string path)
         // void setCgiPid(pid_t pid);
         // void setExitStatus(int status);
         // void setCgiPath(std::string path);

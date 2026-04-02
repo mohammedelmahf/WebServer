@@ -119,19 +119,47 @@ void ServerConfig::setPort(std::string parametr)
 		if (!std::isdigit(parametr[i]))
 			throw ErrorException("Wrong syntax: port");
 	}
-	port = ft_stoi((parametr));
+	port = std::stoi((parametr));
 	if (port < 1 || port > 65636)
 		throw ErrorException("Wrong syntax: port");
 	this->_port = (uint16_t) port;
 }
 
-bool ServerConfig::isValidHost(std::string host) const
+bool	 ServerConfig::isValidHost(std::string host) const
 {
     struct sockaddr_in addr;
     int res = inet_pton(AF_INET, host.c_str(), &addr.sin_addr);
 
     return (res == 1);
 }
+
+void	ServerConfig::setClientMAxBodyize(std::string paramt)
+{
+	unsigned long body_size = 0;
+
+	checkToken(paramt);
+	if (paramt.empty())
+		throw ErrorException("Wrong syntax: client_max_body_size");
+	for (size_t i = 0; i < paramt.length(); i++)
+	{
+		if (paramt[i] < '0' || paramt[i] > '9')
+			throw ErrorException("Wrong syntax: client_max_body_size");
+	}
+	try
+	{
+		body_size = std::stoul(paramt);
+	}
+	catch (const std::exception&)
+	{
+		throw ErrorException("Wrong syntax: client_max_body_size");
+	}
+	if (!body_size)
+		throw ErrorException("Wrong syntax: client_max_body_size");
+	this->_client_max_body_size = body_size;
+}
+
+
+
 
 
 
@@ -145,5 +173,5 @@ void ServerConfig::checkToken(std::string& paramt)
 		throw ErrorException("Invalid token: multiple or missing ';'");
 	if(last != paramt.size() - 1)
 		throw ErrorException("Invalid token: ';' must be at the end");
-	paramt.erase(pos);
+	paramt.erase(last);
 }

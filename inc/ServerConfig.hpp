@@ -40,16 +40,35 @@ class ServerConfig
         //Setter
         void    setServerName(std::string server_name);
 		void	setHost(std::string host);
-		void ServerConfig::setRoot(std::string root);
-		void ServerConfig::setPort(std::string parametr);
-
+		void 	setRoot(std::string root);
+		void 	setPort(std::string parametr);
+		void	setClientMAxBodyize(std::string paramt);
 
 
 
 
 
 		
-		bool ServerConfig::isValidHost(std::string host) const;
-		
+		bool isValidHost(std::string host) const;
+		public:
+		class ErrorException : public std::exception
+		{
+			private:
+				std::string _message;
+			public:
+				ErrorException(std::string message) throw()
+				{
+					_message = "SERVER CONFIG ERROR" + message;
+				}
+				virtual const char* what() const throw()
+				{
+					return (_message.c_str());
+				}
+				virtual ~ErrorException() throw() {}
+		};
+
+
+
+
 
 };
