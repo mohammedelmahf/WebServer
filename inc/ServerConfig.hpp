@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <ConfigFile.hpp>
 //#include "LocationConfig.hpp"
 //#include "Location.hpp"
 
@@ -43,13 +44,15 @@ class ServerConfig
 		void 	setRoot(std::string root);
 		void 	setPort(std::string parametr);
 		void	setClientMAxBodyize(std::string paramt);
-
+		void 	setIndex(std::string index);
+		void	setAutoindex(std::string autoindex);
 
 
 
 
 		
-		bool isValidHost(std::string host) const;
+		bool 	isValidHost(std::string host) const;
+		void	setErrorPages(std::vector<std::string> &paramet);
 		public:
 		class ErrorException : public std::exception
 		{

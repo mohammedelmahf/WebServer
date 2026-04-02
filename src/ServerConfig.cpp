@@ -158,7 +158,55 @@ void	ServerConfig::setClientMAxBodyize(std::string paramt)
 	this->_client_max_body_size = body_size;
 }
 
+void ServerConfig::setIndex(std::string index)
+{
+	checkToken(index);
+	this->_index = index;
+}
 
+void ServerConfig::setAutoindex(std::string autoindex)
+{
+	checkToken(autoindex);
+	if (autoindex != "on" && autoindex != "off")
+		throw ErrorException("Wrong syntax: autoindex");
+	if (autoindex == "on")
+		this->_autoindex = true;
+}
+
+void ServerConfig::setErrorPages(std::vector<std::string> &paramet)
+{
+	if (paramet.empty())
+		return;
+	if (paramet.size() % 2 != 0)
+		throw ErrorException ("Error page initialization faled");
+	for (size_t i = 0; i < paramet.size() - 1; i++)
+	{
+		for (size_t j = 0; j < paramet[i].size(); j++) {
+			if (!std::isdigit(paramet[i][j]))
+				throw ErrorException("Error code is invalid");
+		}
+		if (paramet[i].size() != 3)
+			throw ErrorException("Error code is invalid");
+		short code_error = std::stoi(paramet[i]);
+		if (statusCodeString(code_error)  == "Undefined" || code_error < 400)
+			throw ErrorException ("Incorrect error code: " + paramet[i]);
+		i++;
+		std::string path = paramet[i];
+		checkToken(path);
+		if (ConfigFile::getTypePath(path) != 2)
+		{
+			if (ConfigFile::getTypePath(this->_root + path) != 1)
+				throw ErrorException ("Incorrect path for error page file: " + this->_root + path);
+			if (ConfigFile::checkFile(this->_root + path, 0) == -1 || ConfigFile::checkFile(this->_root + path, 4) == -1)
+				throw ErrorException ("Error page file :" + this->_root + path + " is not accessible");
+		}
+		std::map<short, std::string>::iterator it = this->_error_pages.find(code_error);
+		if (it != _error_pages.end())
+			this->_error_pages[code_error] = path;
+		else
+			this->_error_pages.insert(std::make_pair(code_error, path));
+	}
+}
 
 
 
