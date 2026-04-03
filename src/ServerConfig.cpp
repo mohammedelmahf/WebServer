@@ -82,14 +82,14 @@ void	ServerConfig::setServerName(std::string server_name) {
 	this->_server_name = server_name;
 }
 
-void ServerConfig::setHost(std::string parametr)
+void ServerConfig::setHost(std::string paramet)
 {
-	checkToken(parametr);
-	if (parametr == "localhost")
-		parametr = "127.0.0.1";
-	if (!isValidHost(parametr))
+	checkToken(paramet);
+	if (paramet == "localhost")
+		paramet = "127.0.0.1";
+	if (!isValidHost(paramet))
 		throw ErrorException("Wrong syntax: host");
-	this->_host = inet_addr(parametr.data());
+	this->_host = inet_addr(paramet.data());
 }
 
 void ServerConfig::setRoot(std::string root)
@@ -108,18 +108,18 @@ void ServerConfig::setRoot(std::string root)
 	this->_root = full_root;
 }
 
-void ServerConfig::setPort(std::string parametr)
+void ServerConfig::setPort(std::string paramet)
 {
 	unsigned int port;
 	
 	port = 0;
-	checkToken(parametr);
-	for (size_t i = 0; i < parametr.length(); i++)
+	checkToken(paramet);
+	for (size_t i = 0; i < paramet.length(); i++)
 	{
-		if (!std::isdigit(parametr[i]))
+		if (!std::isdigit(paramet[i]))
 			throw ErrorException("Wrong syntax: port");
 	}
-	port = std::stoi((parametr));
+	port = std::stoi((paramet));
 	if (port < 1 || port > 65636)
 		throw ErrorException("Wrong syntax: port");
 	this->_port = (uint16_t) port;
@@ -208,8 +208,154 @@ void ServerConfig::setErrorPages(std::vector<std::string> &paramet)
 	}
 }
 
+void ServerConfig::setLocation(std::string path, std::vector<std::string> paramet)
+{
+	Location new_location;
+	std::vector<std::string> methods;
+	bool flag_methods = false;
+	bool flag_autoindex = false;
+	bool flag_max_size = false;
+	int valid;
 
-
+	new_location.setPath(path);
+	for (size_t i = 0; i < paramet.size(); i++)
+	{
+		if (paramet[i] == "root" && (i + 1) < paramet.size())
+		{
+			if (!new_location.getRootLocation().empty())
+				throw ErrorException("Root of location is duplicated");
+			checkToken(paramet[++i]);
+			if (ConfigFile::getTypePath(paramet[i]) == 2)
+				new_location.setRootLocation(paramet[i]);
+			else
+				new_location.setRootLocation(this->_root + paramet[i]);
+		}
+		else if ((paramet[i] == "allow_methods" || paramet[i] == "methods") && (i + 1) < paramet.size())
+		{
+			if (flag_methods)
+				throw ErrorException("Allow_methods of location is duplicated");
+			std::vector<std::string> methods;
+			while (++i < paramet.size())
+			{
+				if (paramet[i].find(";") != std::string::npos)
+				{
+					checkToken(paramet[i]);
+					methods.push_back(paramet[i]);
+					break ;
+				}
+				else
+				{
+					methods.push_back(paramet[i]);
+					if (i + 1 >= paramet.size())
+						throw ErrorException("Token is invalid");
+				}
+			}
+			new_location.setMethods(methods);
+			flag_methods = true;
+		}
+		else if (paramet[i] == "autoindex" && (i + 1) < paramet.size())
+		{
+			if (path == "/cgi-bin")
+				throw ErrorException("paramet autoindex not allow for CGI");
+			if (flag_autoindex)
+				throw ErrorException("Autoindex of location is duplicated");
+			checkToken(paramet[++i]);
+			new_location.setAutoindex(paramet[i]);
+			flag_autoindex = true;
+		}
+		else if (paramet[i] == "index" && (i + 1) < paramet.size())
+		{
+			if (!new_location.getIndexLocation().empty())
+				throw ErrorException("Index of location is duplicated");
+			checkToken(paramet[++i]);
+			new_location.setIndexLocation(paramet[i]);
+		}
+		else if (paramet[i] == "return" && (i + 1) < paramet.size())
+		{
+			if (path == "/cgi-bin")
+				throw ErrorException("paramet return not allow for CGI");
+			if (!new_location.getReturn().empty())
+				throw ErrorException("Return of location is duplicated");
+			checkToken(paramet[++i]);
+			new_location.setReturn(paramet[i]);
+		}
+		else if (paramet[i] == "alias" && (i + 1) < paramet.size())
+		{
+			if (path == "/cgi-bin")
+				throw ErrorException("paramet alias not allow for CGI");
+			if (!new_location.getAlias().empty())
+				throw ErrorException("Alias of location is duplicated");
+			checkToken(paramet[++i]);
+			new_location.setAlias(paramet[i]);
+		}
+		else if (paramet[i] == "cgi_ext" && (i + 1) < paramet.size())
+		{
+			std::vector<std::string> extension;
+			while (++i < paramet.size())
+			{
+				if (paramet[i].find(";") != std::string::npos)
+				{
+					checkToken(paramet[i]);
+					extension.push_back(paramet[i]);
+					break ;
+				}
+				else
+				{
+					extension.push_back(paramet[i]);
+					if (i + 1 >= paramet.size())
+						throw ErrorException("Token is invalid");
+				}
+			}
+			new_location.setCgiExtension(extension);
+		}
+		else if (paramet[i] == "cgi_path" && (i + 1) < paramet.size())
+		{
+			std::vector<std::string> path;
+			while (++i < paramet.size())
+			{
+				if (paramet[i].find(";") != std::string::npos)
+				{
+					checkToken(paramet[i]);
+					path.push_back(paramet[i]);
+					break ;
+				}
+				else
+				{
+					path.push_back(paramet[i]);
+					if (i + 1 >= paramet.size())
+						throw ErrorException("Token is invalid");
+				}
+				if (paramet[i].find("/python") == std::string::npos && paramet[i].find("/bash") == std::string::npos)
+					throw ErrorException("cgi_path is invalid");
+			}
+			new_location.setCgiPath(path);
+		}
+		else if (paramet[i] == "client_max_body_size" && (i + 1) < paramet.size())
+		{
+			if (flag_max_size)
+				throw ErrorException("Maxbody_size of location is duplicated");
+			checkToken(paramet[++i]);
+			new_location.setMaxBodySize(paramet[i]);
+			flag_max_size = true;
+		}
+		else if (i < paramet.size())
+			throw ErrorException("paramet in a location is invalid");
+	}
+	if (new_location.getPath() != "/cgi-bin" && new_location.getIndexLocation().empty())
+		new_location.setIndexLocation(this->_index);
+	if (!flag_max_size)
+		new_location.setMaxBodySize(this->_client_max_body_size);
+	valid = isValidLocation(new_location);
+	if (valid == 1)
+		throw ErrorException("Failed CGI validation");
+	else if (valid == 2)
+		throw ErrorException("Failed path in locaition validation");
+	else if (valid == 3)
+		throw ErrorException("Failed redirection file in locaition validation");
+	else if (valid == 4)
+		throw ErrorException("Failed alias file in locaition validation");
+	this->_locations.push_back(new_location);
+}
 
 void ServerConfig::checkToken(std::string& paramt)
 {

@@ -53,6 +53,7 @@ class ServerConfig
 		
 		bool 	isValidHost(std::string host) const;
 		void	setErrorPages(std::vector<std::string> &paramet);
+		void	setLocation(std::string path, std::vector<std::string> paramet);
 		public:
 		class ErrorException : public std::exception
 		{
