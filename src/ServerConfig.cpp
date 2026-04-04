@@ -234,7 +234,7 @@ void ServerConfig::setLocation(std::string path, std::vector<std::string> parame
 		{
 			if (flag_methods)
 				throw ErrorException("Allow_methods of location is duplicated");
-			std::vector<std::string> methods;
+			//std::vector<std::string> methods;
 			while (++i < paramet.size())
 			{
 				if (paramet[i].find(";") != std::string::npos)
