@@ -479,3 +479,4 @@ bool ServerConfig::isValidErrorPages()
 const std::string &ServerConfig::getRoot(){
 	return(this->_root);
 }
+
