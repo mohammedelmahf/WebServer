@@ -46,6 +46,7 @@ class ServerConfig
 		void	setClientMAxBodyize(std::string paramt);
 		void 	setIndex(std::string index);
 		void	setAutoindex(std::string autoindex);
+		void	setFd(int fd);
 
 
 

@@ -357,6 +357,12 @@ void ServerConfig::setLocation(std::string path, std::vector<std::string> parame
 	this->_locations.push_back(new_location);
 }
 
+void	ServerConfig::setFd(int fd){
+	this->_listen_fd = fd;
+}
+
+
+
 void ServerConfig::checkToken(std::string& paramt)
 {
 	size_t first , last;
