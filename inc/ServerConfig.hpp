@@ -50,11 +50,18 @@ class ServerConfig
 
 
 
+		//Getter
+		const std::string	&getRoot();
+
+
+
 
 		
 		bool 	isValidHost(std::string host) const;
+		bool	isValidErrorPages();
 		void	setErrorPages(std::vector<std::string> &paramet);
 		void	setLocation(std::string path, std::vector<std::string> paramet);
+		int 	isValidLocation(Location &location) const;
 		public:
 		class ErrorException : public std::exception
 		{
