@@ -464,19 +464,124 @@ bool ServerConfig::isValidErrorPages()
 	return (true);
 }
 
-
-
-
-
-
-
-
-
-
-
-
 //Getter
 const std::string &ServerConfig::getRoot(){
 	return(this->_root);
 }
 
+const std::string &ServerConfig::getServerName()
+{
+	return (this->_server_name);
+}
+
+const std::string &ServerConfig::getRoot()
+{
+	return (this->_root);
+}
+
+const bool &ServerConfig::getAutoindex()
+{
+	return (this->_autoindex);
+}
+
+const in_addr_t &ServerConfig::getHost()
+{
+	return (this->_host);
+}
+
+const uint16_t &ServerConfig::getPort()
+{
+	return (this->_port);
+}
+
+const size_t &ServerConfig::getClientMaxBodySize()
+{
+	return (this->_client_max_body_size);
+}
+
+const std::vector<Location> &ServerConfig::getLocations()
+{
+	return (this->_locations);
+}
+
+const std::map<short, std::string> &ServerConfig::getErrorPages()
+{
+	return (this->_error_pages);
+}
+
+const std::string &ServerConfig::getIndex()
+{
+	return (this->_index);
+}
+
+int   	ServerConfig::getFd() 
+{ 
+	return (this->_listen_fd); 
+}
+
+const std::string &ServerConfig::getPathErrorPage(short key)
+{
+	std::map<short, std::string>::iterator it = this->_error_pages.find(key);
+	if (it == this->_error_pages.end())
+		throw ErrorException("Error_page does not exist");
+	return (it->second);
+}
+
+// find location by name !!!!?do not using in parser, created for server manager
+const std::vector<Location>::iterator ServerConfig::getLocationKey(std::string key)
+{
+	std::vector<Location>::iterator it;
+	for (it = this->_locations.begin(); it != this->_locations.end(); it++)
+	{
+		if (it->getPath() == key)
+			return (it);
+	}
+	throw ErrorException("Error: path to location not found");
+}
+
+// check isproperly end of paramet
+void ServerConfig::checkToken(std::string &parametr)
+{
+	size_t pos = parametr.rfind(';');
+	if (pos != parametr.size() - 1)
+		throw ErrorException("Token is invalid");
+	parametr.erase(pos);
+}
+
+// check loc for a dublicate
+bool ServerConfig::checkLocaitons() const
+{
+	if (this->_locations.size() < 2)
+		return (false);
+	std::vector<Location>::const_iterator it1;
+	std::vector<Location>::const_iterator it2;
+	for (it1 = this->_locations.begin(); it1 != this->_locations.end() - 1; it1++) {
+		for (it2 = it1 + 1; it2 != this->_locations.end(); it2++) {
+			if (it1->getPath() == it2->getPath())
+				return (true);
+		}
+	}
+	return (false);
+}
+
+// socket setup and binding 
+// void	ServerConfig::setupServer(void)
+// {
+// 	if ((_listen_fd = socket(AF_INET, SOCK_STREAM, 0) )  == -1 )
+//     {
+// 		Logger::logMsg(RED, CONSOLE_OUTPUT, "webserv: socket error %s   Closing ....", strerror(errno));
+//         exit(EXIT_FAILURE);
+//     }
+
+//     int option_value = 1;
+//     setsockopt(_listen_fd, SOL_SOCKET, SO_REUSEADDR, &option_value, sizeof(int));
+//     memset(&_server_address, 0, sizeof(_server_address));
+//     _server_address.sin_family = AF_INET;
+//     _server_address.sin_addr.s_addr = _host;
+//     _server_address.sin_port = htons(_port);
+//     if (bind(_listen_fd, (struct sockaddr *) &_server_address, sizeof(_server_address)) == -1)
+//     {
+// 		Logger::logMsg(RED, CONSOLE_OUTPUT, "webserv: bind error %s   Closing ....", strerror(errno));
+//         exit(EXIT_FAILURE);
+//     }
+// }

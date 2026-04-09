@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: maelmahf <maelmahf@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/09 21:36:08 by maelmahf          #+#    #+#             */
+/*   Updated: 2026/04/09 21:37:03 by maelmahf         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once 
 
 #include <arpa/inet.h>
@@ -52,7 +64,22 @@ class ServerConfig
 
 		//Getter
 		const std::string	&getRoot();
+		int   	getFd();
+		const std::map<short, std::string> &getErrorPages();
+		const std::vector<Location> &getLocations();
+		const size_t &getClientMaxBodySize();
+		const uint16_t &getPort();
+		const in_addr_t &getHost();
+		const bool &getAutoindex();
+		const std::string &getServerName();
+		const std::string &getIndex();
+		const std::vector<Location>::iterator getLocationKey(std::string key);
+		const std::string &getPathErrorPage(short key);
 
+		
+		void	setupServer(void);
+		bool checkLocaitons() const;
+		void checkToken(std::string &parametr);
 
 
 
