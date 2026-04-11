@@ -6,7 +6,7 @@
 /*   By: maelmahf <maelmahf@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/09 21:36:08 by maelmahf          #+#    #+#             */
-/*   Updated: 2026/04/09 21:37:03 by maelmahf         ###   ########.fr       */
+/*   Updated: 2026/04/11 16:45:31 by maelmahf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <ConfigFile.hpp>
+#include "ConfigFile.hpp"
+#include "ConfigParser.hpp"
 //#include "LocationConfig.hpp"
 //#include "Location.hpp"
 
@@ -55,7 +56,7 @@ class ServerConfig
 		void	setHost(std::string host);
 		void 	setRoot(std::string root);
 		void 	setPort(std::string parametr);
-		void	setClientMAxBodyize(std::string paramt);
+		void	setClientMaxBodysize(std::string paramt);
 		void 	setIndex(std::string index);
 		void	setAutoindex(std::string autoindex);
 		void	setFd(int fd);
@@ -106,8 +107,7 @@ class ServerConfig
 				virtual ~ErrorException() throw() {}
 		};
 
-
-
-
-
 };
+
+		//Utils
+		std::string statusCodeString(short statusCode);

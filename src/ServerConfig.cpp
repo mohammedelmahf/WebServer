@@ -1,4 +1,5 @@
 #include "../inc/ServerConfig.hpp"
+#include <cstdlib>
 
 ServerConfig::ServerConfig()
 {
@@ -111,6 +112,8 @@ void ServerConfig::setRoot(std::string root)
 void ServerConfig::setPort(std::string paramet)
 {
 	unsigned int port;
+	char *end_ptr;
+	unsigned long parsed;
 	
 	port = 0;
 	checkToken(paramet);
@@ -119,9 +122,11 @@ void ServerConfig::setPort(std::string paramet)
 		if (!std::isdigit(paramet[i]))
 			throw ErrorException("Wrong syntax: port");
 	}
-	port = std::stoi((paramet));
-	if (port < 1 || port > 65636)
+	end_ptr = NULL;
+	parsed = std::strtoul(paramet.c_str(), &end_ptr, 10);
+	if (*end_ptr != '\0' || parsed < 1 || parsed > 65535)
 		throw ErrorException("Wrong syntax: port");
+	port = static_cast<unsigned int>(parsed);
 	this->_port = (uint16_t) port;
 }
 
@@ -133,7 +138,7 @@ bool	 ServerConfig::isValidHost(std::string host) const
     return (res == 1);
 }
 
-void	ServerConfig::setClientMAxBodyize(std::string paramt)
+void	ServerConfig::setClientMaxBodysize(std::string paramt)
 {
 	unsigned long body_size = 0;
 
@@ -525,16 +530,6 @@ const std::string &ServerConfig::getPathErrorPage(short key)
 	if (it == this->_error_pages.end())
 		throw ErrorException("Error_page does not exist");
 	return (it->second);
-}
-
-
-// check isproperly end of paramet
-void ServerConfig::checkToken(std::string &parametr)
-{
-	size_t pos = parametr.rfind(';');
-	if (pos != parametr.size() - 1)
-		throw ErrorException("Token is invalid");
-	parametr.erase(pos);
 }
 
 // check loc for a dublicate

@@ -48,10 +48,10 @@ int ConfigFile::isFileExistAndReadable(std::string const path, std::string const
 std::string	ConfigFile::readFile(std::string path)
 {
 	if (path.empty() || path.length() == 0)
-		return (NULL);
+		return ("");
 	std::ifstream config_file(path.c_str());
 	if (!config_file || !config_file.is_open())
-		return (NULL);
+		return ("");
 
 	std::stringstream buffer;
 	buffer << config_file.rdbuf();
