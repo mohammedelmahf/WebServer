@@ -203,7 +203,7 @@ const unsigned long &Location::getMaxBodySize() const
 	return (this->_client_max_body_size);
 }
 
-/* for printing allowed methods*/
+/* Build a comma-separated method list for debug and config diagnostics. */
 std::string Location::getPrintMethods() const
 {
     std::string res;

@@ -1,4 +1,5 @@
 #include "../inc/ConfigParser.hpp"
+#include "../inc/Location.hpp"
 
 ConfigParser::ConfigParser()
 {
@@ -7,7 +8,7 @@ ConfigParser::ConfigParser()
 
 ConfigParser::~ConfigParser() { }
 
-/* Print server parameters loaded from the config file. */
+/* Dump parsed server configuration to stdout for parser diagnostics. */
 int ConfigParser::print()
 {
 	std::cout << "------------- Config -------------" << std::endl;
@@ -56,7 +57,7 @@ int ConfigParser::print()
 	return (0);
 }
 
-/* Read the config file, split server blocks, and build the server vector. */
+/* Load, sanitize, split, and materialize all server blocks from a config file. */
 int ConfigParser::createCluster(const std::string &config_file)
 {
 	std::string		content;
@@ -85,7 +86,7 @@ int ConfigParser::createCluster(const std::string &config_file)
 	return (0);
 }
 
-/* Remove comments from '#' to end of line. */
+/* Strip inline config comments from '#' through end-of-line. */
 void ConfigParser::removeComments(std::string &content)
 {
 	size_t pos;
@@ -100,7 +101,7 @@ void ConfigParser::removeComments(std::string &content)
 	}
 }
 
-/* Trim leading and trailing whitespace in the input content. */
+/* Trim leading and trailing whitespace to simplify parser state transitions. */
 void ConfigParser::removeWhiteSpace(std::string &content)
 {
 	size_t	i = 0;
@@ -114,7 +115,7 @@ void ConfigParser::removeWhiteSpace(std::string &content)
 	content = content.substr(0, i + 1);
 }
 
-/* Split the config into separate server block strings. */
+/* Extract each top-level server block into an independent parse unit. */
 void ConfigParser::splitServers(std::string &content)
 {
 	size_t start = 0;
@@ -134,7 +135,7 @@ void ConfigParser::splitServers(std::string &content)
 	}
 }
 
-/* Find the beginning of a server block and return the index of '{'. */
+/* Find a valid server declaration and return the opening brace position. */
 size_t ConfigParser::findStartServer (size_t start, std::string &content)
 {
 	size_t i;
@@ -160,7 +161,7 @@ size_t ConfigParser::findStartServer (size_t start, std::string &content)
 
 }
 
-/* Find the end of a server block and return the index of matching '}'. */
+/* Walk nested scopes and return the matching closing brace of a server block. */
 size_t ConfigParser::findEndServer (size_t start, std::string &content)
 {
 	size_t	i;
@@ -181,7 +182,7 @@ size_t ConfigParser::findEndServer (size_t start, std::string &content)
 	return (start);
 }
 
-/* Split a line using the provided delimiter characters. */
+/* Tokenize input using delimiter characters while preserving token ordering. */
 std::vector<std::string> splitParametrs(std::string line, std::string sep)
 {
 	std::vector<std::string>	str;
@@ -202,7 +203,7 @@ std::vector<std::string> splitParametrs(std::string line, std::string sep)
 	return (str);
 }
 
-/* Build one ServerConfig object from a single server block string. */
+/* Translate one server block token stream into a validated ServerConfig object. */
 void ConfigParser::createServer(std::string &config, ServerConfig &server)
 {
 	std::vector<std::string>	parametrs;
@@ -314,7 +315,7 @@ void ConfigParser::createServer(std::string &config, ServerConfig &server)
 		throw ErrorException("Incorrect path for error page or number of error");
 }
 
-/* Compare str2 against str1 starting at position pos. */
+/* Compare token str2 against str1 at pos and enforce token boundary semantics. */
 int	ConfigParser::stringCompare(std::string str1, std::string str2, size_t pos)
 {
 	size_t	i;
@@ -330,7 +331,7 @@ int	ConfigParser::stringCompare(std::string str1, std::string str2, size_t pos)
 	return (1);
 }
 
-/* Validate duplicate and mandatory server parameters. */
+/* Enforce uniqueness of server identity tuple: host, port, and server_name. */
 void ConfigParser::checkServers()
 {
 	std::vector<ServerConfig>::iterator it1;

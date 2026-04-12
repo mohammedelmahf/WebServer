@@ -1,25 +1,8 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: maelmahf <maelmahf@student.1337.ma>        +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/09 21:36:08 by maelmahf          #+#    #+#             */
-/*   Updated: 2026/04/11 16:45:31 by maelmahf         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #pragma once 
 
-#include <arpa/inet.h>
-#include <string>
-#include <vector>
-#include <map>
-#include "ConfigFile.hpp"
-#include "ConfigParser.hpp"
-//#include "LocationConfig.hpp"
-//#include "Location.hpp"
+#include "WebServer.hpp"
+
 
 #define MAX_CONTENT_LENGTH (1024 * 1024)  // 1MB default
 class Location;
@@ -47,7 +30,6 @@ class ServerConfig
 		ServerConfig &operator=(const ServerConfig & rhs);
 
 		void initErrorPages(void);
-        void checkToken(std::string& paramt);
 
 
 
@@ -80,7 +62,7 @@ class ServerConfig
 		
 		void	setupServer(void);
 		bool checkLocaitons() const;
-		void checkToken(std::string &parametr);
+		void checkToken(std::string &paramt);
 
 
 
@@ -108,6 +90,3 @@ class ServerConfig
 		};
 
 };
-
-		//Utils
-		std::string statusCodeString(short statusCode);

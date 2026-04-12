@@ -1,10 +1,7 @@
 #pragma once
+#include "WebServer.hpp"
 
 
-//#include "Webserv.hpp"
-#include "CgiHandler.hpp"
-#include "ServerConfig.hpp"
-#include "ConfigFile.hpp"
 class Location
 {
 	private:
@@ -12,7 +9,7 @@ class Location
 		std::string					_root;
 		bool						_autoindex;
 		std::string					_index;
-		std::vector<short>			_methods; // GET+ POST- DELETE- PUT- HEAD-
+		std::vector<short>			_methods; // Method flags ordered as GET, POST, DELETE, PUT, HEAD.
 		std::string					_return;
 		std::string					_alias;
 		std::vector<std::string>	_cgi_path;

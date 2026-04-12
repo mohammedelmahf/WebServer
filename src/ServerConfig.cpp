@@ -1,4 +1,5 @@
 #include "../inc/ServerConfig.hpp"
+#include "../inc/Location.hpp"
 #include <cstdlib>
 
 ServerConfig::ServerConfig()
@@ -18,7 +19,7 @@ ServerConfig::ServerConfig()
 
 ServerConfig::~ServerConfig() { }
 
-/* copy constructor */
+
 ServerConfig::ServerConfig(const ServerConfig &other)
 {
 	if (this != &other)
@@ -39,7 +40,7 @@ ServerConfig::ServerConfig(const ServerConfig &other)
 	return ;
 }
 
-/* assinment operator */
+
 ServerConfig &ServerConfig::operator=(const ServerConfig & paramt)
 {
 	if (this != &paramt)
@@ -239,7 +240,7 @@ void ServerConfig::setLocation(std::string path, std::vector<std::string> parame
 		{
 			if (flag_methods)
 				throw ErrorException("Allow_methods of location is duplicated");
-			//std::vector<std::string> methods;
+			// Method tokens are collected until ';' and validated below.
 			while (++i < paramet.size())
 			{
 				if (paramet[i].find(";") != std::string::npos)
@@ -469,11 +470,7 @@ bool ServerConfig::isValidErrorPages()
 	return (true);
 }
 
-//Getter
-const std::string &ServerConfig::getRoot(){
-	return(this->_root);
-}
-
+// Accessors
 const std::string &ServerConfig::getServerName()
 {
 	return (this->_server_name);
@@ -532,7 +529,7 @@ const std::string &ServerConfig::getPathErrorPage(short key)
 	return (it->second);
 }
 
-// check loc for a dublicate
+// Detect duplicate location paths within the same server block.
 bool ServerConfig::checkLocaitons() const
 {
 	if (this->_locations.size() < 2)

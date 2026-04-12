@@ -1,14 +1,8 @@
 #pragma once 
 
 
-#include "Location.hpp"
-#include <string>
-#include <iostream>
-#include <map>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fstream>
-#include <sstream>
+#include "WebServer.hpp"
+
 class CgiHandler{
 
     private:
@@ -28,10 +22,10 @@ class CgiHandler{
         // int getExitStatus() const;
         // std::string getCgiPath() const;
 
-        void initEnv(HttpRequest& req , const std::vector<Location>::iterator it_loc);
+        void            initEnv(HttpRequest& req , const std::vector<Location>::iterator it_loc);
+        std::string     decode(std::string &path);
 
         // // Setters
-        void CgiHandler::setCgiPath(std::string path)
         // void setCgiPid(pid_t pid);
         // void setExitStatus(int status);
         // void setCgiPath(std::string path);
