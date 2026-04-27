@@ -1,5 +1,5 @@
-#include "../inc/Location.hpp"
-#include <cstdlib>
+#include "../includes/CgiHandler.hpp"
+
 
 Location::Location()
 {
