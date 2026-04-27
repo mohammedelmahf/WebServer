@@ -1,4 +1,6 @@
 # include "../includes/multiplexing.hpp"
+# include "../includes/ServerConfig.hpp"
+# include "../includes/response.hpp"
 
 
 		multiplexing::multiplexing() {}
@@ -37,6 +39,31 @@
 		void	multiplexing::set_master_sockets(server_infra& infos)
 		{
 			master_sockets = infos.get_sockets();
+		}
+
+		void	multiplexing::setupServer(std::vector<ServerConfig> servers)
+		{
+			server_infra infra;
+			std::vector<engine_resource> resources;
+
+			resources.reserve(servers.size());
+			for (size_t i = 0; i < servers.size(); ++i)
+			{
+				struct in_addr host_addr;
+				host_addr.s_addr = servers[i].getHost();
+				resources.push_back(engine_resource(inet_ntoa(host_addr), servers[i].getPort(), servers[i].getClientMaxBodySize()));
+			}
+			infra.set_resources(resources);
+			infra.create_sockets();
+			infra.bind_sockets();
+			infra.activate_sockets();
+			set_master_sockets(infra);
+		}
+
+		void	multiplexing::runServer()
+		{
+			prepare_master_sockets();
+			cluster_controlling();
 		}
 
 		/*
@@ -181,41 +208,67 @@
 		 * the routine below runs the server main job 
 		 */
 
-		void	multiplexing::cluster_controlling()
+
+		void    multiplexing::cluster_controlling()
 		{
-			int	activity;
-
+			int activity;
 			std::cout << "the server is running ..." << std::endl;
-
 			while (true)
 			{
-				activity = poll(&fds_list[0], fds_list.size() , -1);
-				if (activity < 0 )
+				activity = poll(&fds_list[0], fds_list.size(), -1);
+				if (activity < 0)
 				{
-					if (errno == EINTR) // just the os pauses the code we baypass this 
+					if (errno == EINTR)
 						continue;
-					throw  MultiplexingExcption("Global Poll Failure: " + std::string(strerror(errno)));
+					throw MultiplexingExcption("Global Poll Failure: " + std::string(strerror(errno)));
 				}
-				for (size_t i = 0 ; i < fds_list.size() ; i++)
-				{	
+				for (size_t i = 0; i < fds_list.size(); i++)
+				{
+					bool client_removed = false;
+					int fd = fds_list[i].fd;
 					if (fds_list[i].revents & POLLHUP)
 					{
-						std::cerr << "the client : " << fds_list[i].fd << "hung up " << std::endl;
-						close(fds_list[i].fd);
-						abort_client(fds_list[i].fd);
+						std::cerr << "the client : " << fd << " hung up " << std::endl;
+						close(fd);
+						abort_client(fd);
+						client_removed = true;
 					}
 					if (fds_list[i].revents & POLLERR)
 					{
-						// the socket encountrede a hardware or kernel error
-						close(fds_list[i].fd);
-						abort_client(fds_list[i].fd);
+						close(fd);
+						abort_client(fd);
+						client_removed = true;
 					}
-					if (fds_list[i].revents & POLLIN) // an event occured ;
+					if (!client_removed && (fds_list[i].revents & POLLIN))
 					{
-						if (is_master_socket(fds_list[i].fd))
-							add_new_client(fds_list[i].fd);
+						if (is_master_socket(fd))
+							add_new_client(fd);
 						else
-							existing_client(fds_list[i].fd);
+							existing_client(fd);
+					}
+					// Handle ready-to-write clients (send response)
+					if (!client_removed && (fds_list[i].revents & POLLOUT))
+					{
+						std::map<int, client>::iterator client_idx = client_data.find(fd);
+						if (client_idx != client_data.end() && client_idx->second.get_finished_reading())
+						{
+							   Request &req = client_idx->second.getRequest();
+							Response resp;
+							if (req.getMethod() == Request::GET)
+							{
+								resp.build("GET", req.getPath(), req.getBody(), "./www");
+							}
+							else
+							{
+								resp.buildErrorPage(405);
+							}
+							std::string response_str = resp.toString();
+							ssize_t sent = send(fd, response_str.c_str(), response_str.size(), 0);
+							// For simplicity, close after sending (no keep-alive)
+							close(fd);
+							abort_client(fd);
+							client_removed = true;
+						}
 					}
 				}
 			}

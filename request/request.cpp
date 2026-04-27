@@ -1,12 +1,48 @@
 #include "../includes/request.hpp"
 #include <cstdlib>
+#include <cctype>
+
+namespace
+{
+    std::string toLowerCopy(std::string s)
+    {
+        for (size_t i = 0; i < s.size(); ++i)
+            s[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(s[i])));
+        return s;
+    }
+}
 
 
 Request::Request(): _method(UNKNOWN), _state(REQUEST_LINE) {}
 Request::Method Request::getMethod() const { return _method; }
 const std::string& Request::getPath() const { return _path; }
+const std::string& Request::getQuery() const { return _query; }
 const std::string& Request::getVersion() const { return _version; }
 const std::vector<char>& Request::getBody() const { return _body; }
+std::string Request::getHeader(const std::string &name) const
+{
+    std::string key = toLowerCopy(name);
+    std::map<std::string, std::string>::const_iterator it = _headers.find(key);
+    if (it == _headers.end())
+        return "";
+    return it->second;
+}
+
+const std::map<std::string, std::string>& Request::getHeaders() const
+{
+    return _headers;
+}
+
+std::string Request::getMethodStr() const
+{
+    switch (_method)
+    {
+        case GET: return "GET";
+        case POST: return "POST";
+        case DELETE: return "DELETE";
+        default: return "UNKNOWN";
+    }
+}
 
 void Request::parse(const char* data, size_t size)
 {
@@ -52,9 +88,22 @@ bool Request::parseRequestLine()
     
     std::istringstream iss(line);
     std::string methodStr;
-    if (!(iss >> methodStr >> _path >> _version)) {
+    std::string target;
+    if (!(iss >> methodStr >> target >> _version)) {
         _state = ERROR;
         return false;
+    }
+
+    size_t qpos = target.find('?');
+    if (qpos == std::string::npos)
+    {
+        _path = target;
+        _query.clear();
+    }
+    else
+    {
+        _path = target.substr(0, qpos);
+        _query = target.substr(qpos + 1);
     }
 
     //methodStr that store first word from request line
@@ -86,10 +135,10 @@ bool Request::parseHeaders()
         if (line.empty())
         {
             // 1. Check for Chunked Encoding FIRST
-            if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"].find("chunked") != std::string::npos)
+            if (_headers.count("transfer-encoding") && _headers["transfer-encoding"].find("chunked") != std::string::npos)
                 _state = CHUNK_SIZE; 
             // if there is content lenght that's mean we have a body else finish baecause no body
-            else if (_headers.count("Content-Length"))
+            else if (_headers.count("content-length"))
                 _state = BODY;
             else
                 _state = FINISHED;
@@ -112,6 +161,7 @@ bool Request::parseHeaders()
         // remove first char because usually after ':' we find ' ' so we skip it
         if (!value.empty() && value[0] == ' ')
             value.erase(0, 1);
+        key = toLowerCopy(key);
         //store 
         _headers[key] = value;
     }
@@ -161,7 +211,7 @@ bool Request::parseChunkData()
 
 bool Request::parseBody()
 {
-    size_t contentLenght = std::atoi(_headers["Content-Length"].c_str()); // convert value of Content-Length from str to int
+    size_t contentLenght = std::atoi(_headers["content-length"].c_str()); // convert value of Content-Length from str to int
     if (_buffer.size() < contentLenght) // wait for  _buffer finish all bvbody content bytes we need base on Content-Length
         return false;
     // store all content from 0 to Content-Length in _body

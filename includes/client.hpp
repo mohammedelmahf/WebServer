@@ -25,6 +25,7 @@ class	client
 		bool	get_finished_reading() ;
 		void	parse_request(char *data, int rb);
 		bool	is_parsing_finished();
+		Request& getRequest();
 };
 
 # endif

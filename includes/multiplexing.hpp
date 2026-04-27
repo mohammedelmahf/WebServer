@@ -20,6 +20,7 @@ class	MultiplexingExcption : public std::exception
 class	server_infra;
 class	client;
 class	Request;
+class ServerConfig;
 
 # define MAX_BODY_SIZE = 1000;
 
@@ -41,6 +42,8 @@ class	multiplexing
 		void	prepare_master_sockets();
 		
 		void	cluster_controlling();	
+		void	setupServer(std::vector<ServerConfig> servers);
+		void	runServer();
 		int	is_master_socket(int fd);
 		void existing_client(int fd);
 		void abort_client(int fd);

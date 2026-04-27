@@ -68,8 +68,8 @@ void	server_infra::bind_sockets()
 		memset(&infos, 0, sizeof(infos));
 		infos.sin_family = AF_INET;
 		infos.sin_port = htons(resources[i].get_port()) ; 
-		const char	*str  = resources[i].get_interface().c_str();
-		infos.sin_addr.s_addr = inet_addr(str); // check with the config file to handle (* or 0.0.0.0)
+		std::string iface = resources[i].get_interface();
+		infos.sin_addr.s_addr = inet_addr(iface.c_str()); // check with the config file to handle (* or 0.0.0.0)
 		sockets_infos.push_back(infos);
 	}
 

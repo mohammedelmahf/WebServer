@@ -86,21 +86,23 @@ const std::string &CgiHandler::getCgiPath() const
     return (this->_cgi_path);
 }
 
-void CgiHandler::initEnvCgi(HttpRequest& req, const std::vector<Location>::iterator it_loc)
+void CgiHandler::initEnvCgi(Request& req, const std::vector<Location>::iterator it_loc)
 {
 	std::string cgi_exec = ("cgi-bin/" + it_loc->getCgiPath()[0]).c_str();
 	char    *cwd = getcwd(NULL, 0);
-	if(_cgi_path[0] != '/')
+	if (!_cgi_path.empty() && _cgi_path[0] != '/')
 	{
 		std::string tmp(cwd);
 		tmp.append("/");
 		if(_cgi_path.length() > 0)
 			_cgi_path.insert(0, tmp);
 	}
-	if(req.getMethod() == POST)
+	if (cwd)
+		free(cwd);
+	if(req.getMethod() == Request::POST)
 	{
 		std::stringstream out;
-		out << req.getBody().length();
+		out << req.getBody().size();
 		this->_env["CONTENT_LENGTH"] = out.str();
 		this->_env["CONTENT_TYPE"] = req.getHeader("content-type");
 	}
@@ -141,7 +143,7 @@ void CgiHandler::initEnvCgi(HttpRequest& req, const std::vector<Location>::itera
 }
 
 
-void CgiHandler::initEnv(HttpRequest& req, const std::vector<Location>::iterator it_loc)
+void CgiHandler::initEnv(Request& req, const std::vector<Location>::iterator it_loc)
 {
 	int			poz;
 	std::string extension;
@@ -162,7 +164,7 @@ void CgiHandler::initEnv(HttpRequest& req, const std::vector<Location>::iterator
     this->_env["SCRIPT_FILENAME"] = ((poz < 0 || (size_t)(poz + 8) > this->_cgi_path.size()) ? "" : this->_cgi_path.substr(poz + 8, this->_cgi_path.size())); // check dif cases after put right parametr from the response
     this->_env["PATH_INFO"] = getPathInfo(req.getPath(), it_loc->getCgiExtension());
     this->_env["PATH_TRANSLATED"] = it_loc->getRootLocation() + (this->_env["PATH_INFO"] == "" ? "/" : this->_env["PATH_INFO"]);
-    this->_env["QUERY_STRING"] = decode(req.getQuery());
+	this->_env["QUERY_STRING"] = decode(req.getQuery());
     this->_env["REMOTE_ADDR"] = req.getHeader("host");
 	poz = findStart(req.getHeader("host"), ":");
     this->_env["SERVER_NAME"] = (poz > 0 ? req.getHeader("host").substr(0, poz) : "");
@@ -244,26 +246,27 @@ int CgiHandler::findStart(const std::string path, const std::string delim)
 		return (-1);
 }
 
-std::string CgiHandler::decode(std::string &path)
+std::string CgiHandler::decode(const std::string &path)
 {
-	size_t token = path.find("%");
+	std::string decoded = path;
+	size_t token = decoded.find("%");
 	while (token != std::string::npos)
 	{
-		if (path.length() < token + 2)
+		if (decoded.length() < token + 3)
 			break ;
-		char decimal = fromHexToDec(path.substr(token + 1, 2));
-		path.replace(token, 3, toString(decimal));
-		token = path.find("%");
+		char decimal = static_cast<char>(fromHexToDec(decoded.substr(token + 1, 2)));
+		decoded.replace(token, 3, toString(decimal));
+		token = decoded.find("%");
 	}
-	return (path);
+	return (decoded);
 }
 
-std::string CgiHandler::getPathInfo(std::string& path, std::vector<std::string> extensions)
+std::string CgiHandler::getPathInfo(const std::string& path, const std::vector<std::string>& extensions)
 {
 	std::string tmp;
 	size_t start, end;
 
-	for (std::vector<std::string>::iterator it = extensions.begin(); it != extensions.end(); it++)
+	for (std::vector<std::string>::const_iterator it = extensions.begin(); it != extensions.end(); it++)
 	{
 		start = path.find(*it);
 		if (start != std::string::npos)

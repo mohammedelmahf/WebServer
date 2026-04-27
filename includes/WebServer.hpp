@@ -29,3 +29,5 @@ std::string toString(const T val)
 //Utils
 std::string statusCodeString(short statusCode);
 unsigned int    fromHexToDec(const std::string &n);
+
+static const unsigned long MAX_CONTENT_LENGTH = 1000000UL;

@@ -1,3 +1,6 @@
+#include "../includes/client.hpp"
+
+Request& client::getRequest() { return request; }
 # include "../includes/client.hpp"
 
 client::client() { }
